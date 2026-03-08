@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Test Psicotécnico</title>
+<title>Road Drift</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -67,8 +67,7 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
 .joy-ring.r1{width:48px;height:48px;top:50%;left:50%;transform:translate(-50%,-50%);}
 .joy-ring.r2{width:96px;height:96px;top:50%;left:50%;transform:translate(-50%,-50%);}
 #joy-knob{width:42px;height:42px;border-radius:50%;background:var(--joy-knob);box-shadow:0 3px 12px rgba(240,160,48,0.5);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;pointer-events:none;}
-#joy-knob::after{content:'';position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.2);}
-#calib-dot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;display:none;pointer-events:none;}
+#calib-dot{display:none !important;}
 
 /* Controls beside joystick */
 #joy-controls{display:flex;flex-direction:column;gap:8px;min-width:0;}
@@ -85,7 +84,7 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
 
 /* Calib panel */
 #calib-panel{display:none;position:fixed;bottom:20px;left:20px;z-index:300;width:240px;background:var(--panel);border:2px solid var(--border);border-radius:4px;padding:16px;box-shadow:0 6px 24px rgba(0,0,0,0.4);}
-#cdots{display:flex;justify-content:center;gap:6px;margin-bottom:12px;}
+#cdots{display:none;}
 #cheader{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 #carrow{font-size:1.5rem;flex-shrink:0;}
 #ctitle{font-weight:700;font-size:0.75rem;color:var(--accent);}
@@ -98,62 +97,92 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
-  body{flex-direction:column;}
+  body { flex-direction: column; }
 
-  /* Game fills whole screen */
-  #left{flex:1;width:100%;}
-  #score-row{padding:4px 0;}
-  .score-val{font-size:1.1rem;}
+  /* LEFT column fills all */
+  #left { flex: 1; width: 100%; display: flex; flex-direction: column; min-height: 0; }
 
-  /* Right panel overlays game as floating widgets */
-  #right{
-    position:fixed;
-    width:auto;
-    background:transparent;
-    border:none;
-    flex-direction:row;
-    align-items:flex-end;
-    bottom:0;left:0;right:0;
-    pointer-events:none;
-    height:auto;
-    z-index:100;
+  /* Score row at TOP */
+  #score-row {
+    order: -1;
+    border-top: none;
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .score-val { font-size: 1.05rem; }
+  .score-lbl { font-size: 0.44rem; }
+
+  /* Game canvas fills remaining space above bottom bar */
+  #game-wrap { flex: 1; min-height: 0; }
+
+  /* Right panel becomes a bottom bar: full width, fixed height */
+  #right {
+    position: static;
+    width: 100%;
+    height: 160px;
+    flex-shrink: 0;
+    flex-direction: row;
+    border-left: none;
+    border-top: 2px solid var(--border);
+    background: var(--bg);
+    overflow: hidden;
   }
 
-  /* Camera — small floating top-right */
-  #cam-section{
-    position:fixed;
-    top:10px;right:10px;
-    width:120px;height:90px;
-    border-radius:8px;
-    border:2px solid var(--border);
-    overflow:hidden;
-    pointer-events:all;
-    flex:none;
-    box-shadow:0 4px 12px rgba(0,0,0,0.5);
+  /* Camera — left half of bottom bar */
+  #cam-section {
+    flex: 1;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--border);
+    position: relative;
   }
-  .cam-lbl{font-size:0.45rem;}
+  .cam-lbl { font-size: 0.44rem; }
 
-  /* Joystick — floating bottom-right */
-  #joy-block{
-    position:fixed;
-    bottom:14px;right:14px;
-    width:170px;height:170px;
-    border-radius:50%;
-    border:2px solid var(--border);
-    background:rgba(26,26,40,0.85);
-    backdrop-filter:blur(6px);
-    padding:0;
-    gap:0;
-    pointer-events:all;
-    justify-content:center;
-    align-items:center;
-    box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  /* Joystick — right half of bottom bar */
+  #joy-block {
+    flex: 1;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+    border-top: none;
+    background: var(--joy-bg);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
   }
-  .joystick-base{width:140px;height:140px;}
-  #joy-controls{display:none;}
-
-  /* Score row stays visible */
-  #score-row{position:relative;z-index:10;}
+  /* Joystick — right half of bottom bar */
+  #joy-block {
+    flex: 1;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+    border-top: none;
+    background: var(--joy-bg);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .joystick-base { width: 90px; height: 90px; }
+  .joy-ring.r1 { width: 32px; height: 32px; }
+  .joy-ring.r2 { width: 64px; height: 64px; }
+  #joy-knob { width: 28px; height: 28px; }
+  #joy-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+  .joy-xy { display: none; }
+  .status-row { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .st-face, .st-fps, .st-cam { display: none; }
+  .sm-btn { font-size: 0.5rem; padding: 5px 7px; white-space: normal; line-height: 1.3; }
+  #calib-badge { font-size: 0.48rem; }
 }
 </style>
 </head>
@@ -164,7 +193,8 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
   <div id="game-wrap">
     <canvas id="test-canvas"></canvas>
     <div id="overlay">
-      <div class="ov-title" id="ov-title">TEST<br>PSICOTÉCNICO</div>
+      <div class="ov-title" id="ov-title">ROAD
+DRIFT</div>
       <div class="ov-score" id="ov-score" style="display:none"></div>
       <div class="ov-sub">Mantén el círculo dentro de la carretera<br>← → Girar &nbsp;·&nbsp; Joystick o cara</div>
       <button class="btn" id="play-btn">▶ INICIAR</button>
@@ -203,12 +233,12 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
       <div class="joy-xy">X:<span id="jx">0.00</span></div>
       <div class="joy-xy">Y:<span id="jy">0.00</span></div>
       <div class="status-row">
-        <div class="st"><div class="led" id="led-cam"></div><span id="val-cam">OFF</span></div>
-        <div class="st"><div class="led" id="led-face"></div>Cara</div>
-        <div class="st"><div class="led" id="led-fps"></div><span id="val-fps">—</span>fps</div>
+        <div class="st st-cam"><div class="led" id="led-cam"></div><span id="val-cam">OFF</span></div>
+        <div class="st st-face"><div class="led" id="led-face"></div>Cara</div>
+        <div class="st st-fps"><div class="led" id="led-fps"></div><span id="val-fps">—</span>fps</div>
       </div>
-      <button class="sm-btn danger" id="btn-cam-stop" style="display:none">■ Detener</button>
-      <button class="sm-btn" id="btn-calibrate">⊕ Calibrar cara</button>
+      <button class="sm-btn" id="btn-cam-toggle">Activar cámara</button>
+      <button class="sm-btn" id="btn-calibrate">Calibrar cara</button>
       <div id="calib-badge"></div>
     </div>
   </div>
@@ -303,8 +333,8 @@ const cPanel=document.getElementById('calib-panel'),cBar=document.getElementById
 const cAction=document.getElementById('caction'),cCancel=document.getElementById('ccancel'),cBadge=document.getElementById('calib-badge');
 const cArrow=document.getElementById('carrow'),cTitle=document.getElementById('ctitle'),cDesc=document.getElementById('cdesc');
 
-function buildDots(ai){cDots.innerHTML='';CSTEPS.forEach((s,i)=>{const d=document.createElement('div');d.style.cssText=`width:8px;height:8px;border-radius:50%;background:${i<ai?'#2dc653':i===ai?s.c:'#ddd'};transition:all .3s;`;cDots.appendChild(d);});}
-function showCDot(rec){const t=STARGET[rec];if(!t){calibDot.style.display='none';return;}const c=CSTEPS[cIdx]?.c||'#1a1a2e';calibDot.style.left=(50+t.x*50)+'%';calibDot.style.top=(50+t.y*50)+'%';calibDot.style.background=c;calibDot.style.display='block';}
+function buildDots(ai){} // dots hidden — no-op
+function showCDot(rec){} // target dot removed
 function showStep(i){cIdx=i;cSamples=[];cBar.style.width='0%';cArrow.textContent=CSTEPS[i].a;cArrow.style.color=CSTEPS[i].c;cTitle.textContent=CSTEPS[i].l;cTitle.style.color=CSTEPS[i].c;cDesc.innerHTML=CSTEPS[i].t+'<br><br><span style="color:#555">Cuando estés en posición, pulsa Confirmar.</span>';cAction.textContent='✓ Confirmar';cAction.disabled=false;cState='waiting';buildDots(i);showCDot(CSTEPS[i].r);}
 function showIntro(){cState='intro';cBar.style.width='0%';cArrow.textContent='🎯';cArrow.style.color='#1a1a2e';cTitle.textContent='Calibración';cTitle.style.color='#1a1a2e';cDesc.innerHTML='Registra tu rango de movimiento en <b>5 posiciones</b>.';cAction.textContent='Empezar';cAction.disabled=false;buildDots(-1);}
 function cTick(n){if(cState!=='waiting')return;cSamples.push({x:n.x,y:n.y});if(cSamples.length>20)cSamples.shift();}
@@ -348,12 +378,24 @@ async function startCam(){
     fm.onResults(onFace);
     mpCam=new Camera(faceVideo,{onFrame:async()=>{await fm.send({image:faceVideo});},width:280,height:190});
     mpCam.start();
-    ledCam.classList.add('on');valCam.textContent='ON';document.getElementById('btn-cam-stop').style.display='block';
+    ledCam.classList.add('on');valCam.textContent='ON';
+    const t=document.getElementById('btn-cam-toggle');
+    if(t){t.textContent='Detener cámara';t.classList.add('danger');}
   }catch(e){document.getElementById('cam-overlay').classList.remove('hidden');document.querySelector('.cam-hint').textContent='Error: '+e.message;}
 }
-function stopCam(){mpCam?.stop?.();faceVideo.srcObject?.getTracks().forEach(t=>t.stop());faceVideo.srcObject=null;faceCtx.clearRect(0,0,faceCanvas.width,faceCanvas.height);ledCam.classList.remove('on');ledFace.classList.remove('on');valCam.textContent='OFF';document.getElementById('btn-cam-stop').style.display='none';document.getElementById('cam-overlay').classList.remove('hidden');}
+function stopCam(){
+  mpCam?.stop?.();faceVideo.srcObject?.getTracks().forEach(t=>t.stop());faceVideo.srcObject=null;
+  faceCtx.clearRect(0,0,faceCanvas.width,faceCanvas.height);
+  ledCam.classList.remove('on');ledFace.classList.remove('on');valCam.textContent='OFF';
+  document.getElementById('cam-overlay').classList.remove('hidden');
+  const t=document.getElementById('btn-cam-toggle');
+  if(t){t.textContent='Activar cámara';t.classList.remove('danger');}
+}
+let camActive=false;
+function toggleCam(){camActive=!camActive;camActive?startCam():stopCam();}
 document.getElementById('btn-cam-start').addEventListener('click',startCam);
-document.getElementById('btn-cam-stop').addEventListener('click',stopCam);
+const btnToggle=document.getElementById('btn-cam-toggle');
+if(btnToggle)btnToggle.addEventListener('click',toggleCam);
 
 
 /* ══════════════════════════════
@@ -380,9 +422,9 @@ const SLICE_H    = 4;
 function difficulty() {
   return Math.min(1, Math.max(0, (dist2 - 1500) / 19500));
 }
-function scrollSpeed()  { return 2.2 + difficulty() * 3.8; }   // 2.2 → 6.0
-function curveFactor()  { return 0.04 + difficulty() * 0.16; } // 0.04 → 0.20
-function angleLimit()   { return 0.4 + difficulty() * 0.6; }   // 0.4 → 1.0
+function scrollSpeed()  { return 2.2 + difficulty() * 3.8; }
+// Max curve angle capped so ball can always steer through it
+function angleLimit()   { return 0.22 + difficulty() * 0.18; } // 0.22 → 0.40
 
 /* ── Seeded PRNG (mulberry32) — same road every time ── */
 function makeRng(seed) {
@@ -419,10 +461,8 @@ function ensureSlices() {
       // Pick a new target angle: biased away from edges, uses seeded rng
       const edgeBias = -(roadGen.x - w / 2) / (w * 0.38);
       const maxA = angleLimit();
-      // New target: random direction with edge correction, no self-cancellation
-      roadGen.segTarget = (rng() - 0.5) * 2 * maxA + edgeBias * maxA;
+      roadGen.segTarget = (rng() - 0.5) * 2 * maxA * 0.85 + edgeBias * maxA;
       roadGen.segTarget = Math.max(-maxA, Math.min(maxA, roadGen.segTarget));
-      // Hold this curve for 80–200 slices (~320–800px) — long committed curves
       roadGen.segLen = Math.floor(rng() * 120 + 80);
     }
 
@@ -461,7 +501,7 @@ let gameState = 'idle', gameStart = 0, lastT = 0;
 
 function resetGame() {
   slices = []; sliceBase = 0; scrollPx = 0;
-  rng = makeRng(0xdeadbeef);
+  rng = makeRng(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
   roadGen = { x: CW / 2, angle: 0, segLen: 0, segTarget: 0 };
   ensureSlices();
   // Place ball exactly at road center at its screen position
@@ -503,7 +543,7 @@ function endGame() {
 }
 
 document.getElementById('play-btn').addEventListener('click', () => {
-  document.getElementById('ov-title').textContent   = 'TEST\nPSICOTÉCNICO';
+  document.getElementById('ov-title').textContent   = 'ROAD\nDRIFT';
   document.getElementById('ov-score').style.display = 'none';
   startGame();
 });
@@ -629,7 +669,7 @@ function gameLoop(ts) {
 function idleLoop() {
   if (gameState === 'running') return;
   if (CW > 0) {
-    if (slices.length < 10) { rng = makeRng(0xdeadbeef); roadGen = { x: 0, angle: 0, segLen: 0, segTarget: 0 }; ensureSlices(); ballX = CW/2; }
+    if (slices.length < 10) { rng = makeRng(Date.now()); roadGen = { x: 0, angle: 0, segLen: 0, segTarget: 0 }; ensureSlices(); ballX = CW/2; }
     scrollPx += 1.2;
     ensureSlices();
     drawGame();
