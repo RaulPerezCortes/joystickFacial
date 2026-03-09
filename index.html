@@ -6,119 +6,501 @@
 <title>Road Drift</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --bg:#1e1e2e;
-  --accent:#f0ead8;
-  --accent2:#f0a030;
-  --red:#f04040;
-  --green:#40d068;
-  --dim:#a0a0c0;
-  --panel:#262638;
-  --border:#4a4a64;
-  --joy-bg:#1a1a28;
-  --joy-base:#2e2e44;
-  --joy-ring:#4e4e6a;
-  --joy-knob:#f0a030;
-  --txt:#ddd8c8;
-  --score-bg:#1a1a28;
+
+/* ── Variables ── */
+:root {
+  --bg:        #1e1e2e;
+  --accent:    #f0ead8;
+  --accent2:   #f0a030;
+  --red:       #f04040;
+  --green:     #40d068;
+  --dim:       #a0a0c0;
+  --panel:     #262638;
+  --border:    #4a4a64;
+  --joy-bg:    #1a1a28;
+  --joy-base:  #2e2e44;
+  --joy-ring:  #4e4e6a;
+  --joy-knob:  #f0a030;
+  --txt:       #ddd8c8;
+  --score-bg:  #1a1a28;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overflow:hidden;display:flex;}
 
-/* LEFT: game fills all remaining space */
-#left{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;min-width:0;}
-#game-wrap{flex:1;position:relative;overflow:hidden;}
-#test-canvas{display:block;width:100%;height:100%;}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-/* Score bar */
-#score-row{flex-shrink:0;display:flex;background:var(--score-bg);border-top:2px solid var(--border);}
-.score-box{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px;border-right:1px solid var(--border);}
-.score-box:last-child{border-right:none;}
-.score-val{font-size:1.4rem;font-weight:700;color:var(--accent2);line-height:1;}
-.score-lbl{font-size:0.52rem;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase;margin-top:2px;}
+body {
+  background: var(--bg);
+  font-family: 'Space Mono', monospace;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
 
-/* Overlay */
-#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(20,20,34,0.94);}
-#overlay.hidden{display:none;}
-.ov-title{font-size:1.7rem;font-weight:700;color:var(--accent);text-align:center;line-height:1.2;white-space:pre-line;}
-.ov-sub{font-size:0.6rem;color:var(--dim);letter-spacing:0.08em;text-align:center;line-height:2;}
-.ov-score{font-size:1.1rem;font-weight:700;color:var(--accent2);}
-.btn{font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:11px 30px;border:2px solid var(--accent2);background:transparent;color:var(--accent2);cursor:pointer;border-radius:3px;transition:all .18s;}
-.btn:hover{background:var(--accent2);color:#1a1a2e;}
+/* ── Left column (game) ── */
+#left {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
-/* RIGHT panel */
-#right{width:300px;flex-shrink:0;background:var(--panel);border-left:2px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#game-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
 
-/* Camera */
-#cam-section{flex:1;position:relative;overflow:hidden;background:#0a0a12;min-height:0;}
-#face-video{display:none;}
-#face-canvas{width:100%;height:100%;display:block;}
-.cam-lbl{position:absolute;bottom:6px;left:8px;font-size:0.55rem;letter-spacing:0.1em;color:#00f5c4;opacity:.9;}
-#cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(4,4,14,0.95);text-align:center;padding:14px;}
-#cam-overlay.hidden{display:none;}
-.cam-hint{font-size:0.58rem;color:var(--dim);line-height:1.7;}
+#test-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
-/* Joystick block */
-#joy-block{flex-shrink:0;height:220px;display:flex;align-items:center;justify-content:center;gap:18px;padding:12px 16px;border-top:2px solid var(--border);background:var(--joy-bg);}
+/* ── Score bar ── */
+#score-row {
+  flex-shrink: 0;
+  display: flex;
+  background: var(--score-bg);
+  border-top: 2px solid var(--border);
+}
 
-.joystick-base{width:140px;height:140px;border-radius:50%;background:var(--joy-base);border:2.5px solid var(--joy-ring);box-shadow:inset 0 4px 12px rgba(0,0,0,0.5),0 2px 6px rgba(0,0,0,0.3);position:relative;cursor:grab;flex-shrink:0;}
-.joystick-base:active{cursor:grabbing;}
-.joy-ring{position:absolute;border-radius:50%;border:1.5px solid var(--joy-ring);}
-.joy-ring.r1{width:48px;height:48px;top:50%;left:50%;transform:translate(-50%,-50%);}
-.joy-ring.r2{width:96px;height:96px;top:50%;left:50%;transform:translate(-50%,-50%);}
-#joy-knob{width:42px;height:42px;border-radius:50%;background:var(--joy-knob);box-shadow:0 3px 12px rgba(240,160,48,0.5);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;pointer-events:none;}
-#calib-dot{display:none !important;}
+.score-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 9px 4px;
+  border-right: 1px solid var(--border);
+}
 
-/* Controls beside joystick */
-#joy-controls{display:flex;flex-direction:column;gap:8px;min-width:0;}
-.joy-xy{font-size:0.58rem;color:var(--dim);}
-.joy-xy span{color:var(--accent);font-weight:700;}
-.sm-btn{font-family:'Space Mono',monospace;font-size:0.57rem;letter-spacing:0.09em;text-transform:uppercase;padding:6px 9px;border:1.5px solid var(--border);background:transparent;color:var(--txt);cursor:pointer;border-radius:2px;transition:all .18s;white-space:nowrap;}
-.sm-btn:hover{border-color:var(--accent2);color:var(--accent2);background:rgba(240,160,48,0.08);}
-.sm-btn.danger{color:var(--red);border-color:#5a2828;}
-#calib-badge{font-size:0.56rem;color:var(--green);display:none;}
-.status-row{display:flex;flex-direction:column;gap:5px;}
-.st{display:flex;align-items:center;gap:5px;font-size:0.57rem;color:var(--dim);}
-.led{width:6px;height:6px;border-radius:50%;background:#444;flex-shrink:0;}
-.led.on{background:var(--green);box-shadow:0 0 6px var(--green);}
+.score-box:last-child {
+  border-right: none;
+}
 
-/* Calib panel */
-#calib-panel{display:none;position:fixed;bottom:20px;left:20px;z-index:300;width:240px;background:var(--panel);border:2px solid var(--border);border-radius:4px;padding:16px;box-shadow:0 6px 24px rgba(0,0,0,0.4);}
-#cdots{display:none;}
-#cheader{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-#carrow{font-size:1.5rem;flex-shrink:0;}
-#ctitle{font-weight:700;font-size:0.75rem;color:var(--accent);}
-#cdesc{font-size:0.6rem;color:#b8b4d0;line-height:1.75;margin-bottom:10px;}
-#cbar-bg{background:#0e0e18;height:3px;border-radius:2px;margin-bottom:10px;overflow:hidden;}
-#cbar{height:100%;width:0%;background:var(--accent2);border-radius:2px;}
-#caction{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:7px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);cursor:pointer;border-radius:2px;width:100%;}
-#caction:disabled{opacity:.3;cursor:not-allowed;}
-#ccancel{font-family:'Space Mono',monospace;font-size:0.56rem;color:var(--dim);background:none;border:none;cursor:pointer;margin-top:6px;display:block;width:100%;text-align:center;}
+.score-val {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent2);
+  line-height: 1;
+}
 
-/* ── MOBILE ── */
+.score-lbl {
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── Game overlay (start / game over) ── */
+#overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(20, 20, 34, 0.94);
+}
+
+#overlay.hidden {
+  display: none;
+}
+
+.ov-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  line-height: 1.2;
+  white-space: pre-line;
+}
+
+.ov-sub {
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 2;
+}
+
+.ov-score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+.btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 11px 30px;
+  border: 2px solid var(--accent2);
+  background: transparent;
+  color: var(--accent2);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all .18s;
+}
+
+.btn:hover {
+  background: var(--accent2);
+  color: #1a1a2e;
+}
+
+/* ── Right panel (camera + joystick) ── */
+#right {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Camera section ── */
+#cam-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a12;
+  min-height: 0;
+  aspect-ratio: 4/3;
+  align-self: stretch;
+}
+
+#face-video {
+  display: none;
+}
+
+#face-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.cam-lbl {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: #00f5c4;
+  opacity: .9;
+}
+
+#cam-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(4, 4, 14, 0.95);
+  text-align: center;
+  padding: 14px;
+}
+
+#cam-overlay.hidden {
+  display: none;
+}
+
+.cam-hint {
+  font-size: 0.58rem;
+  color: var(--dim);
+  line-height: 1.7;
+}
+
+/* ── Joystick block ── */
+#joy-block {
+  flex-shrink: 0;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 16px;
+  border-top: 2px solid var(--border);
+  background: var(--joy-bg);
+}
+
+.joystick-base {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: var(--joy-base);
+  border: 2.5px solid var(--joy-ring);
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+  position: relative;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.joystick-base:active {
+  cursor: grabbing;
+}
+
+.joy-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid var(--joy-ring);
+}
+
+.joy-ring.r1 {
+  width: 48px;
+  height: 48px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.joy-ring.r2 {
+  width: 96px;
+  height: 96px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#joy-knob {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--joy-knob);
+  box-shadow: 0 3px 12px rgba(240, 160, 48, 0.5);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+#calib-dot {
+  display: none !important;
+}
+
+/* ── Controls beside joystick ── */
+#joy-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.joy-xy {
+  font-size: 0.58rem;
+  color: var(--dim);
+}
+
+.joy-xy span {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.sm-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.57rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 6px 9px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--txt);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all .18s;
+  white-space: nowrap;
+}
+
+.sm-btn:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  background: rgba(240, 160, 48, 0.08);
+}
+
+.sm-btn.danger {
+  color: var(--red);
+  border-color: #5a2828;
+}
+
+#calib-badge {
+  font-size: 0.56rem;
+  color: var(--green);
+  display: none;
+}
+
+.status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.st {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.57rem;
+  color: var(--dim);
+}
+
+.led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #444;
+  flex-shrink: 0;
+}
+
+.led.on {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* ── Calibration panel ── */
+#calib-panel {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 300;
+  width: 240px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+
+#cdots {
+  display: none;
+}
+
+#cheader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+#carrow {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+#ctitle {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+#cdesc {
+  font-size: 0.6rem;
+  color: #b8b4d0;
+  line-height: 1.75;
+  margin-bottom: 10px;
+}
+
+#cbar-bg {
+  background: #0e0e18;
+  height: 3px;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+#cbar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent2);
+  border-radius: 2px;
+}
+
+#caction {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px;
+  border: 1.5px solid var(--accent2);
+  background: transparent;
+  color: var(--accent2);
+  cursor: pointer;
+  border-radius: 2px;
+  width: 100%;
+}
+
+#caction:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+
+#ccancel {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 6px;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* ════════════════════════════════
+   MOBILE  (≤ 640px)
+════════════════════════════════ */
 @media (max-width: 640px) {
-  body { flex-direction: column; }
 
-  #left { flex: 1; width: 100%; display: flex; flex-direction: column; min-height: 0; }
+  body {
+    flex-direction: column;
+  }
 
-  /* Score row at TOP */
+  #left {
+    flex: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* Score row moves to top */
   #score-row {
     order: -1;
     border-top: none;
     border-bottom: 2px solid var(--border);
     flex-shrink: 0;
   }
+
   .score-val { font-size: 1.05rem; }
   .score-lbl { font-size: 0.44rem; }
 
-  /* Game shrinks to leave more room for bottom bar */
-  #game-wrap { flex: 1; min-height: 0; }
+  /* Game: 62% of viewport height */
+  #game-wrap {
+    flex: none;
+    height: 62vh;
+    min-height: 0;
+    max-height: none;
+  }
 
-  /* Bottom bar — taller so it sits higher visually */
+  /* Bottom bar: camera + joystick, 34vh */
   #right {
     position: static;
     width: 100%;
-    height: 190px;
+    height: calc(34vh - env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     flex-shrink: 0;
     flex-direction: row;
     border-left: none;
@@ -135,40 +517,72 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
     border: none;
     border-right: 1px solid var(--border);
     position: relative;
+    overflow: hidden;
+    aspect-ratio: unset;
   }
+
+  #face-canvas {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+
   .cam-lbl { font-size: 0.44rem; }
 
   /* Joystick — right half */
   #joy-block {
     flex: 1;
-    height: 100%;
+    height: calc(100% - env(safe-area-inset-bottom, 0px));
     border-radius: 0;
     border: none;
     background: var(--joy-bg);
-    padding: 8px 10px;
+    padding: 6px 8px;
     display: flex;
+    flex-direction: row-reverse;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
-  .joystick-base { width: 90px; height: 90px; }
-  .joy-ring.r1 { width: 32px; height: 32px; }
-  .joy-ring.r2 { width: 64px; height: 64px; }
-  #joy-knob { width: 28px; height: 28px; }
+
+  .joystick-base {
+    width: 70px;
+    height: 70px;
+  }
+
+  .joy-ring.r1 { width: 24px; height: 24px; }
+  .joy-ring.r2 { width: 48px; height: 48px; }
+
+  #joy-knob {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Controls column beside joystick */
   #joy-controls {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
   }
-  .joy-xy { display: none; }
-  .status-row { flex-direction: row; flex-wrap: wrap; gap: 4px; }
-  .st-face, .st-fps, .st-cam { display: none; }
-  .sm-btn { font-size: 0.5rem; padding: 5px 7px; white-space: normal; line-height: 1.3; }
-  #calib-badge { font-size: 0.48rem; }
 
-  /* Calib panel — centered on mobile */
+  /* Hide debug readouts */
+  .joy-xy  { display: none; }
+  .st-face,
+  .st-fps,
+  .st-cam  { display: none; }
+  .status-row { display: none; }
+
+  .sm-btn {
+    font-size: 0.46rem;
+    padding: 4px 6px;
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  #calib-badge { font-size: 0.44rem; }
+
+  /* Calibration panel — centered */
   #calib-panel {
     left: 50% !important;
     bottom: auto !important;
@@ -182,28 +596,39 @@ body{background:var(--bg);font-family:'Space Mono',monospace;height:100vh;overfl
 </head>
 <body>
 
-<!-- LEFT: game fills all space -->
+<!-- LEFT: game + score -->
 <div id="left">
   <div id="game-wrap">
     <canvas id="test-canvas"></canvas>
     <div id="overlay">
-      <div class="ov-title" id="ov-title">ROAD
-DRIFT</div>
+      <div class="ov-title" id="ov-title">ROAD&#10;DRIFT</div>
       <div class="ov-score" id="ov-score" style="display:none"></div>
-      <div class="ov-sub">Mantén el círculo dentro de la carretera<br>← → Girar &nbsp;·&nbsp; Joystick o cara</div>
+      <div class="ov-sub">
+        Mantén el círculo dentro de la carretera<br>
+        ← → Girar &nbsp;·&nbsp; Joystick o cara
+      </div>
       <button class="btn" id="play-btn">▶ INICIAR</button>
     </div>
   </div>
   <div id="score-row">
-    <div class="score-box"><div class="score-val" id="val-dist">0</div><div class="score-lbl">metros</div></div>
-    <div class="score-box"><div class="score-val" id="val-time">0.0</div><div class="score-lbl">segundos</div></div>
-    <div class="score-box"><div class="score-val" id="val-best" style="color:var(--green)">—</div><div class="score-lbl">récord</div></div>
+    <div class="score-box">
+      <div class="score-val" id="val-dist">0</div>
+      <div class="score-lbl">metros</div>
+    </div>
+    <div class="score-box">
+      <div class="score-val" id="val-time">0.0</div>
+      <div class="score-lbl">segundos</div>
+    </div>
+    <div class="score-box">
+      <div class="score-val" id="val-best" style="color:var(--green)">—</div>
+      <div class="score-lbl">récord</div>
+    </div>
   </div>
 </div>
 
-<!-- RIGHT panel -->
+<!-- RIGHT: camera + joystick -->
 <div id="right">
-  <!-- Camera fills all space above joystick -->
+
   <div id="cam-section">
     <video id="face-video" autoplay playsinline muted></video>
     <canvas id="face-canvas"></canvas>
@@ -215,7 +640,6 @@ DRIFT</div>
     </div>
   </div>
 
-  <!-- Joystick fixed at bottom -->
   <div id="joy-block">
     <div class="joystick-base" id="joy-base">
       <div class="joy-ring r2"></div>
@@ -224,24 +648,37 @@ DRIFT</div>
       <div id="joy-knob"></div>
     </div>
     <div id="joy-controls">
-      <div class="joy-xy">X:<span id="jx">0.00</span></div>
-      <div class="joy-xy">Y:<span id="jy">0.00</span></div>
+      <div class="joy-xy">X: <span id="jx">0.00</span></div>
+      <div class="joy-xy">Y: <span id="jy">0.00</span></div>
       <div class="status-row">
-        <div class="st st-cam"><div class="led" id="led-cam"></div><span id="val-cam">OFF</span></div>
-        <div class="st st-face"><div class="led" id="led-face"></div>Cara</div>
-        <div class="st st-fps"><div class="led" id="led-fps"></div><span id="val-fps">—</span>fps</div>
+        <div class="st st-cam">
+          <div class="led" id="led-cam"></div>
+          <span id="val-cam">OFF</span>
+        </div>
+        <div class="st st-face">
+          <div class="led" id="led-face"></div>
+          Cara
+        </div>
+        <div class="st st-fps">
+          <div class="led" id="led-fps"></div>
+          <span id="val-fps">—</span>fps
+        </div>
       </div>
       <button class="sm-btn" id="btn-cam-toggle">Activar cámara</button>
       <button class="sm-btn" id="btn-calibrate">Calibrar cara</button>
       <div id="calib-badge"></div>
     </div>
   </div>
+
 </div>
 
-<!-- Calib panel -->
+<!-- Calibration panel -->
 <div id="calib-panel">
   <div id="cdots"></div>
-  <div id="cheader"><div id="carrow">🎯</div><div id="ctitle">Calibración</div></div>
+  <div id="cheader">
+    <div id="carrow">🎯</div>
+    <div id="ctitle">Calibración</div>
+  </div>
   <p id="cdesc"></p>
   <div id="cbar-bg"><div id="cbar"></div></div>
   <button id="caction">Iniciar</button>
@@ -252,153 +689,411 @@ DRIFT</div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <script>
-/* ══════════════════════════════
-   JOYSTICK + FACE
-══════════════════════════════ */
-const faceVideo=document.getElementById('face-video');
-const faceCanvas=document.getElementById('face-canvas');
-const faceCtx=faceCanvas.getContext('2d');
-const ledCam=document.getElementById('led-cam'),ledFace=document.getElementById('led-face'),ledFps=document.getElementById('led-fps');
-const valCam=document.getElementById('val-cam'),valFps=document.getElementById('val-fps');
-const joyKnob=document.getElementById('joy-knob');
-const calibDot=document.getElementById('calib-dot');
-const jxEl=document.getElementById('jx'),jyEl=document.getElementById('jy');
+/* ══════════════════════════════════════════════════════
+   JOYSTICK + FACE TRACKING
+══════════════════════════════════════════════════════ */
 
-const NOSE=4, JR=46, SM=0.12, DZ=0.06;
-let kx=0,ky=0;          // current knob px
-let joyX=0,joyY=0;      // -1..1 exposed to game
+const faceVideo  = document.getElementById('face-video');
+const faceCanvas = document.getElementById('face-canvas');
+const faceCtx    = faceCanvas.getContext('2d');
+const ledCam     = document.getElementById('led-cam');
+const ledFace    = document.getElementById('led-face');
+const ledFps     = document.getElementById('led-fps');
+const valCam     = document.getElementById('val-cam');
+const valFps     = document.getElementById('val-fps');
+const joyKnob    = document.getElementById('joy-knob');
+const calibDot   = document.getElementById('calib-dot');
+const jxEl       = document.getElementById('jx');
+const jyEl       = document.getElementById('jy');
 
-let calibrated=false,calib={};
-let cState='idle',cIdx=0,cSamples=[],cRaw={};
+// Joystick constants
+const NOSE = 4;    // MediaPipe nose tip landmark index
+const JR   = 46;   // Joystick radius in px (logical)
+const SM   = 0.12; // Smoothing factor (0=none, 1=instant)
+const DZ   = 0.06; // Dead zone (fraction of range)
 
-const OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
-const CSTEPS=[
-  {l:'Centro',   a:'⊙',c:'#1a1a2e',t:'Posición natural.',r:'center'},
-  {l:'Arriba',   a:'↑',c:'#2dc653',t:'Cabeza <b>arriba</b> al máximo.',r:'up'},
-  {l:'Abajo',    a:'↓',c:'#2dc653',t:'Cabeza <b>abajo</b> al máximo.',r:'down'},
-  {l:'Izquierda',a:'←',c:'#2dc653',t:'Cabeza <b>izquierda</b> al máximo.',r:'left'},
-  {l:'Derecha',  a:'→',c:'#2dc653',t:'Cabeza <b>derecha</b> al máximo.',r:'right'},
+let kx = 0, ky = 0;     // Current knob offset in px
+let joyX = 0, joyY = 0; // Normalised joystick values (-1..1)
+
+let calibrated = false;
+let calib      = {};
+let cState     = 'idle';
+let cIdx       = 0;
+let cSamples   = [];
+let cRaw       = {};
+
+// Face oval landmark indices (used to draw the outline)
+const OVAL = [
+  10,338,297,332,284,251,389,356,454,323,361,288,
+  397,365,379,378,400,377,152,148,176,149,150,136,
+  172,58,132,93,234,127,162,21,54,103,67,109
 ];
-const STARGET={center:{x:0,y:0},up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
 
-function getOval(lm,w,h){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const i of OVAL){const p=lm[i];if(!p)continue;const px=p.x*w,py=p.y*h;x0=Math.min(x0,px);x1=Math.max(x1,px);y0=Math.min(y0,py);y1=Math.max(y1,py);}return{cx:(x0+x1)/2,cy:(y0+y1)/2,rx:(x1-x0)/2,ry:(y1-y0)/2};}
+// Calibration steps definition
+const CSTEPS = [
+  { l: 'Centro',    a: '⊙', c: '#1a1a2e', t: 'Posición natural.',                   r: 'center' },
+  { l: 'Arriba',    a: '↑', c: '#2dc653', t: 'Cabeza <b>arriba</b> al máximo.',     r: 'up'     },
+  { l: 'Abajo',     a: '↓', c: '#2dc653', t: 'Cabeza <b>abajo</b> al máximo.',      r: 'down'   },
+  { l: 'Izquierda', a: '←', c: '#2dc653', t: 'Cabeza <b>izquierda</b> al máximo.',  r: 'left'   },
+  { l: 'Derecha',   a: '→', c: '#2dc653', t: 'Cabeza <b>derecha</b> al máximo.',    r: 'right'  },
+];
 
-function faceToJoy(lm,w,h){
-  const oval=getOval(lm,w,h);if(!oval.rx)return;
-  const n=lm[NOSE];if(!n)return;
-  let nx,ny;
-  if(calibrated){
-    const dx=n.x-calib.cx,dy=n.y-calib.cy;
-    const vU={x:calib.ux-calib.cx,y:calib.uy-calib.cy},vD={x:calib.dx-calib.cx,y:calib.dy-calib.cy};
-    const vL={x:calib.lx-calib.cx,y:calib.ly-calib.cy},vR={x:calib.rx-calib.cx,y:calib.ry-calib.cy};
-    const dot=(v,a)=>(v.x*a.x+v.y*a.y)/(a.x**2+a.y**2+1e-9);
-    const rawY=(p=>p>0?Math.min(1,p):Math.max(-1,-dot({x:dx,y:dy},vU)))(dot({x:dx,y:dy},vD));
-    const rawX=(p=>p>0?Math.min(1,p):Math.max(-1,-dot({x:dx,y:dy},vL)))(dot({x:dx,y:dy},vR));
-    const d=v=>{const s=v<0?-1:1,a=Math.abs(v);return a<DZ?0:s*Math.min(1,(a-DZ)/(1-DZ));};
-    nx=d(rawX);ny=d(rawY);
-  }else{
-    nx=Math.max(-1,Math.min(1,(n.x*w-oval.cx)/oval.rx));
-    ny=Math.max(-1,Math.min(1,(n.y*h-oval.cy)/oval.ry));
+const STARGET = {
+  center: { x:  0, y:  0 },
+  up:     { x:  0, y: -1 },
+  down:   { x:  0, y:  1 },
+  left:   { x: -1, y:  0 },
+  right:  { x:  1, y:  0 },
+};
+
+// ── Compute face oval bounding box from landmarks ──
+function getOval(lm, w, h) {
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for (const i of OVAL) {
+    const p = lm[i];
+    if (!p) continue;
+    const px = p.x * w;
+    const py = p.y * h;
+    x0 = Math.min(x0, px);
+    x1 = Math.max(x1, px);
+    y0 = Math.min(y0, py);
+    y1 = Math.max(y1, py);
   }
-  const tx=nx*JR,ty=ny*JR;
-  kx+=(tx-kx)*SM;ky+=(ty-ky)*SM;
-  setKnob(kx,ky);
+  return {
+    cx: (x0 + x1) / 2,
+    cy: (y0 + y1) / 2,
+    rx: (x1 - x0) / 2,
+    ry: (y1 - y0) / 2,
+  };
 }
 
-function setKnob(x,y){
-  const r=joyBase.getBoundingClientRect();
-  const maxR=(r.width/2)-4; // stay inside the circle with 4px margin
-  const d=Math.sqrt(x*x+y*y);
-  if(d>maxR){x*=maxR/d;y*=maxR/d;}
-  joyKnob.style.transform=`translate(calc(-50% + ${x.toFixed(1)}px),calc(-50% + ${y.toFixed(1)}px))`;
-  joyX=x/JR;joyY=y/JR;
-  jxEl.textContent=joyX.toFixed(2);jyEl.textContent=joyY.toFixed(2);
+// ── Convert face nose position to joystick values ──
+function faceToJoy(lm, w, h) {
+  const oval = getOval(lm, w, h);
+  if (!oval.rx) return;
+  const n = lm[NOSE];
+  if (!n) return;
+
+  let nx, ny;
+
+  if (calibrated) {
+    // Use calibrated axes for accurate mapping
+    const dx = n.x - calib.cx;
+    const dy = n.y - calib.cy;
+    const vU = { x: calib.ux - calib.cx, y: calib.uy - calib.cy };
+    const vD = { x: calib.dx - calib.cx, y: calib.dy - calib.cy };
+    const vL = { x: calib.lx - calib.cx, y: calib.ly - calib.cy };
+    const vR = { x: calib.rx - calib.cx, y: calib.ry - calib.cy };
+
+    const dot = (v, a) => (v.x * a.x + v.y * a.y) / (a.x ** 2 + a.y ** 2 + 1e-9);
+
+    const applyDeadzone = v => {
+      const sign = v < 0 ? -1 : 1;
+      const abs  = Math.abs(v);
+      return abs < DZ ? 0 : sign * Math.min(1, (abs - DZ) / (1 - DZ));
+    };
+
+    const rawY = (p => p > 0
+      ? Math.min(1, p)
+      : Math.max(-1, -dot({ x: dx, y: dy }, vU))
+    )(dot({ x: dx, y: dy }, vD));
+
+    const rawX = (p => p > 0
+      ? Math.min(1, p)
+      : Math.max(-1, -dot({ x: dx, y: dy }, vL))
+    )(dot({ x: dx, y: dy }, vR));
+
+    nx = applyDeadzone(rawX);
+    ny = applyDeadzone(rawY);
+
+  } else {
+    // Fallback: simple normalised position within oval
+    nx = Math.max(-1, Math.min(1, (n.x * w - oval.cx) / oval.rx));
+    ny = Math.max(-1, Math.min(1, (n.y * h - oval.cy) / oval.ry));
+  }
+
+  // Smooth toward target position
+  const tx = nx * JR;
+  const ty = ny * JR;
+  kx += (tx - kx) * SM;
+  ky += (ty - ky) * SM;
+  setKnob(kx, ky);
 }
 
-/* Drag */
-const joyBase=document.getElementById('joy-base');
-let drag=false;
-function applyDrag(cx2,cy2){const r=joyBase.getBoundingClientRect();let dx=cx2-(r.left+r.width/2),dy=cy2-(r.top+r.height/2);const d=Math.sqrt(dx*dx+dy*dy);if(d>JR){dx*=JR/d;dy*=JR/d;}kx=dx;ky=dy;setKnob(dx,dy);}
-joyBase.addEventListener('mousedown',e=>{drag=true;e.preventDefault();});
-window.addEventListener('mouseup',()=>{if(drag){drag=false;kx=0;ky=0;setKnob(0,0);}});
-window.addEventListener('mousemove',e=>{if(drag)applyDrag(e.clientX,e.clientY);});
-joyBase.addEventListener('touchstart',e=>{drag=true;e.preventDefault();},{passive:false});
-window.addEventListener('touchend',()=>{if(drag){drag=false;kx=0;ky=0;setKnob(0,0);}});
-window.addEventListener('touchmove',e=>{if(drag)applyDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+// ── Move the knob visually, clamped to joystick circle ──
+function setKnob(x, y) {
+  const r    = joyBase.getBoundingClientRect();
+  const maxR = (r.width / 2) - 4; // 4px margin from edge
+  const d    = Math.sqrt(x * x + y * y);
+  if (d > maxR) {
+    x *= maxR / d;
+    y *= maxR / d;
+  }
+  joyKnob.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px))`;
+  joyX = x / JR;
+  joyY = y / JR;
+  jxEl.textContent = joyX.toFixed(2);
+  jyEl.textContent = joyY.toFixed(2);
+}
 
-/* Calibration */
-const cPanel=document.getElementById('calib-panel'),cBar=document.getElementById('cbar'),cDots=document.getElementById('cdots');
-const cAction=document.getElementById('caction'),cCancel=document.getElementById('ccancel'),cBadge=document.getElementById('calib-badge');
-const cArrow=document.getElementById('carrow'),cTitle=document.getElementById('ctitle'),cDesc=document.getElementById('cdesc');
+/* ── Joystick drag (mouse + touch) ── */
+const joyBase = document.getElementById('joy-base');
+let drag = false;
 
-function buildDots(ai){} // dots hidden — no-op
-function showCDot(rec){} // target dot removed
-function showStep(i){cIdx=i;cSamples=[];cBar.style.width='0%';cArrow.textContent=CSTEPS[i].a;cArrow.style.color=CSTEPS[i].c;cTitle.textContent=CSTEPS[i].l;cTitle.style.color=CSTEPS[i].c;cDesc.innerHTML=CSTEPS[i].t+'<br><br><span style="color:#a0a0c0">Cuando estés en posición, pulsa Confirmar.</span>';cAction.textContent='✓ Confirmar';cAction.disabled=false;cState='waiting';buildDots(i);showCDot(CSTEPS[i].r);}
-function showIntro(){cState='intro';cBar.style.width='0%';cArrow.textContent='🎯';cArrow.style.color='#1a1a2e';cTitle.textContent='Calibración';cTitle.style.color='#1a1a2e';cDesc.innerHTML='Registra tu rango de movimiento en <b>5 posiciones</b>.';cAction.textContent='Empezar';cAction.disabled=false;buildDots(-1);}
-function cTick(n){if(cState!=='waiting')return;cSamples.push({x:n.x,y:n.y});if(cSamples.length>20)cSamples.shift();}
-function capture(){if(!cSamples.length)return;const avg=cSamples.reduce((a,b)=>({x:a.x+b.x,y:a.y+b.y}),{x:0,y:0});avg.x/=cSamples.length;avg.y/=cSamples.length;cRaw[CSTEPS[cIdx].r]=avg;cBar.style.width='100%';cAction.disabled=true;cAction.textContent='✓ Guardado';setTimeout(()=>{const n=cIdx+1;if(n<CSTEPS.length)showStep(n);else finishCalib();},300);}
-function finishCalib(){const c=cRaw;calib={cx:c.center.x,cy:c.center.y,ux:c.up.x,uy:c.up.y,dx:c.down.x,dy:c.down.y,lx:c.left.x,ly:c.left.y,rx:c.right.x,ry:c.right.y};calibrated=true;cState='done';cArrow.textContent='✓';cTitle.textContent='¡Completado!';cBar.style.width='100%';cDesc.textContent='Calibración guardada.';cAction.textContent='Cerrar';cAction.disabled=false;buildDots(CSTEPS.length);calibDot.style.display='none';cBadge.style.display='block';cBadge.textContent='✓ calibrado';}
-document.getElementById('btn-calibrate').addEventListener('click',()=>{cPanel.style.display='block';showIntro();});
-cAction.addEventListener('click',()=>{if(cState==='intro')showStep(0);else if(cState==='waiting')capture();else if(cState==='done'){cPanel.style.display='none';cState='idle';}});
-cCancel.addEventListener('click',()=>{cPanel.style.display='none';cState='idle';calibDot.style.display='none';});
+function applyDrag(clientX, clientY) {
+  const r  = joyBase.getBoundingClientRect();
+  let dx   = clientX - (r.left + r.width  / 2);
+  let dy   = clientY - (r.top  + r.height / 2);
+  const d  = Math.sqrt(dx * dx + dy * dy);
+  if (d > JR) { dx *= JR / d; dy *= JR / d; }
+  kx = dx;
+  ky = dy;
+  setKnob(dx, dy);
+}
 
-/* FPS */
-let fpsN=0,fpsT=performance.now();
-function updFPS(){fpsN++;const now=performance.now();if(now-fpsT>=1000){valFps.textContent=Math.round(fpsN*1000/(now-fpsT));ledFps.classList.toggle('on',true);fpsN=0;fpsT=now;}}
+joyBase.addEventListener('mousedown',  e  => { drag = true; e.preventDefault(); });
+window.addEventListener ('mouseup',    () => { if (drag) { drag = false; kx = 0; ky = 0; setKnob(0, 0); } });
+window.addEventListener ('mousemove',  e  => { if (drag) applyDrag(e.clientX, e.clientY); });
+joyBase.addEventListener('touchstart', e  => { drag = true; e.preventDefault(); }, { passive: false });
+window.addEventListener ('touchend',   () => { if (drag) { drag = false; kx = 0; ky = 0; setKnob(0, 0); } });
+window.addEventListener ('touchmove',  e  => { if (drag) applyDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
 
-/* Face results */
-function onFace(res){
+/* ── Calibration UI ── */
+const cPanel  = document.getElementById('calib-panel');
+const cBar    = document.getElementById('cbar');
+const cDots   = document.getElementById('cdots');
+const cAction = document.getElementById('caction');
+const cCancel = document.getElementById('ccancel');
+const cBadge  = document.getElementById('calib-badge');
+const cArrow  = document.getElementById('carrow');
+const cTitle  = document.getElementById('ctitle');
+const cDesc   = document.getElementById('cdesc');
+
+function buildDots(ai) {}  // dots hidden — no-op
+function showCDot(rec) {}  // target dot removed
+
+function showStep(i) {
+  cIdx             = i;
+  cSamples         = [];
+  cBar.style.width = '0%';
+  cArrow.textContent  = CSTEPS[i].a;
+  cArrow.style.color  = CSTEPS[i].c;
+  cTitle.textContent  = CSTEPS[i].l;
+  cTitle.style.color  = CSTEPS[i].c;
+  cDesc.innerHTML     = CSTEPS[i].t + '<br><br><span style="color:#a0a0c0">Cuando estés en posición, pulsa Confirmar.</span>';
+  cAction.textContent = '✓ Confirmar';
+  cAction.disabled    = false;
+  cState              = 'waiting';
+  buildDots(i);
+  showCDot(CSTEPS[i].r);
+}
+
+function showIntro() {
+  cState              = 'intro';
+  cBar.style.width    = '0%';
+  cArrow.textContent  = '🎯';
+  cArrow.style.color  = '#1a1a2e';
+  cTitle.textContent  = 'Calibración';
+  cTitle.style.color  = '#1a1a2e';
+  cDesc.innerHTML     = 'Registra tu rango de movimiento en <b>5 posiciones</b>.';
+  cAction.textContent = 'Empezar';
+  cAction.disabled    = false;
+  buildDots(-1);
+}
+
+function cTick(n) {
+  if (cState !== 'waiting') return;
+  cSamples.push({ x: n.x, y: n.y });
+  if (cSamples.length > 20) cSamples.shift();
+}
+
+function capture() {
+  if (!cSamples.length) return;
+  const avg = cSamples.reduce((a, b) => ({ x: a.x + b.x, y: a.y + b.y }), { x: 0, y: 0 });
+  avg.x /= cSamples.length;
+  avg.y /= cSamples.length;
+  cRaw[CSTEPS[cIdx].r] = avg;
+  cBar.style.width     = '100%';
+  cAction.disabled     = true;
+  cAction.textContent  = '✓ Guardado';
+  setTimeout(() => {
+    const next = cIdx + 1;
+    if (next < CSTEPS.length) showStep(next);
+    else finishCalib();
+  }, 300);
+}
+
+function finishCalib() {
+  const c = cRaw;
+  calib = {
+    cx: c.center.x, cy: c.center.y,
+    ux: c.up.x,     uy: c.up.y,
+    dx: c.down.x,   dy: c.down.y,
+    lx: c.left.x,   ly: c.left.y,
+    rx: c.right.x,  ry: c.right.y,
+  };
+  calibrated             = true;
+  cState                 = 'done';
+  cArrow.textContent     = '✓';
+  cTitle.textContent     = '¡Completado!';
+  cBar.style.width       = '100%';
+  cDesc.textContent      = 'Calibración guardada.';
+  cAction.textContent    = 'Cerrar';
+  cAction.disabled       = false;
+  buildDots(CSTEPS.length);
+  calibDot.style.display = 'none';
+  cBadge.style.display   = 'block';
+  cBadge.textContent     = '✓ calibrado';
+}
+
+document.getElementById('btn-calibrate').addEventListener('click', () => {
+  cPanel.style.display = 'block';
+  showIntro();
+});
+
+cAction.addEventListener('click', () => {
+  if (cState === 'intro')   showStep(0);
+  else if (cState === 'waiting') capture();
+  else if (cState === 'done') { cPanel.style.display = 'none'; cState = 'idle'; }
+});
+
+cCancel.addEventListener('click', () => {
+  cPanel.style.display   = 'none';
+  cState                 = 'idle';
+  calibDot.style.display = 'none';
+});
+
+/* ── FPS counter ── */
+let fpsN = 0;
+let fpsT = performance.now();
+
+function updFPS() {
+  fpsN++;
+  const now = performance.now();
+  if (now - fpsT >= 1000) {
+    valFps.textContent = Math.round(fpsN * 1000 / (now - fpsT));
+    ledFps.classList.toggle('on', true);
+    fpsN = 0;
+    fpsT = now;
+  }
+}
+
+/* ── Face detection results callback ── */
+function onFace(res) {
   updFPS();
-  const w=faceCanvas.width,h=faceCanvas.height;
-  faceCtx.clearRect(0,0,w,h);
-  faceCtx.save();faceCtx.translate(w,0);faceCtx.scale(-1,1);faceCtx.drawImage(res.image,0,0,w,h);faceCtx.restore();
-  const has=res.multiFaceLandmarks?.length>0;
-  ledFace.classList.toggle('on',has);if(!has)return;
-  for(const lm of res.multiFaceLandmarks){
-    const m=lm.map(p=>({x:1-p.x,y:p.y,z:p.z}));
-    faceToJoy(lm,w,h);
-    if(cState==='waiting'&&lm[NOSE])cTick(lm[NOSE]);
-    drawConnectors(faceCtx,m,FACEMESH_FACE_OVAL,{color:'rgba(0,245,196,0.7)',lineWidth:1.5});
-    // nose dot
-    const n=m[NOSE];if(n){const nx=n.x*w,ny=n.y*h;faceCtx.beginPath();faceCtx.arc(nx,ny,5,0,Math.PI*2);faceCtx.fillStyle='#00f5c4';faceCtx.fill();}
+  const w = faceCanvas.width;
+  const h = faceCanvas.height;
+  faceCtx.clearRect(0, 0, w, h);
+
+  // Mirror image horizontally so it feels like a mirror
+  faceCtx.save();
+  faceCtx.translate(w, 0);
+  faceCtx.scale(-1, 1);
+  faceCtx.drawImage(res.image, 0, 0, w, h);
+  faceCtx.restore();
+
+  const hasFace = res.multiFaceLandmarks?.length > 0;
+  ledFace.classList.toggle('on', hasFace);
+  if (!hasFace) return;
+
+  for (const lm of res.multiFaceLandmarks) {
+    // Mirror landmark x coords to match the mirrored display
+    const m = lm.map(p => ({ x: 1 - p.x, y: p.y, z: p.z }));
+
+    faceToJoy(lm, w, h);
+    if (cState === 'waiting' && lm[NOSE]) cTick(lm[NOSE]);
+
+    // Draw face oval outline
+    drawConnectors(faceCtx, m, FACEMESH_FACE_OVAL, {
+      color: 'rgba(0,245,196,0.7)',
+      lineWidth: 1.5,
+    });
+
+    // Draw nose dot
+    const n = m[NOSE];
+    if (n) {
+      const nx = n.x * w;
+      const ny = n.y * h;
+      faceCtx.beginPath();
+      faceCtx.arc(nx, ny, 5, 0, Math.PI * 2);
+      faceCtx.fillStyle = '#00f5c4';
+      faceCtx.fill();
+    }
   }
 }
 
-let mpCam=null;
-async function startCam(){
+/* ── Camera start / stop ── */
+let mpCam = null;
+
+async function startCam() {
   document.getElementById('cam-overlay').classList.add('hidden');
-  try{
-    const s=await navigator.mediaDevices.getUserMedia({video:{width:280,height:190,facingMode:'user'}});
-    faceVideo.srcObject=s;await new Promise(r=>{faceVideo.onloadedmetadata=r;});
-    faceCanvas.width=faceVideo.videoWidth||280;faceCanvas.height=faceVideo.videoHeight||190;
-    const fm=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-    fm.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 280, height: 190, facingMode: 'user' },
+    });
+    faceVideo.srcObject = stream;
+    await new Promise(r => { faceVideo.onloadedmetadata = r; });
+    faceCanvas.width  = faceVideo.videoWidth  || 280;
+    faceCanvas.height = faceVideo.videoHeight || 190;
+
+    const fm = new FaceMesh({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
+    });
+    fm.setOptions({
+      maxNumFaces:            1,
+      refineLandmarks:        false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence:  0.5,
+    });
     fm.onResults(onFace);
-    mpCam=new Camera(faceVideo,{onFrame:async()=>{await fm.send({image:faceVideo});},width:280,height:190});
+
+    mpCam = new Camera(faceVideo, {
+      onFrame: async () => { await fm.send({ image: faceVideo }); },
+      width:  280,
+      height: 190,
+    });
     mpCam.start();
-    ledCam.classList.add('on');valCam.textContent='ON';
-    const t=document.getElementById('btn-cam-toggle');
-    if(t){t.textContent='Detener cámara';t.classList.add('danger');}
-  }catch(e){document.getElementById('cam-overlay').classList.remove('hidden');document.querySelector('.cam-hint').textContent='Error: '+e.message;}
+
+    ledCam.classList.add('on');
+    valCam.textContent = 'ON';
+    const btn = document.getElementById('btn-cam-toggle');
+    if (btn) { btn.textContent = 'Detener cámara'; btn.classList.add('danger'); }
+
+  } catch (e) {
+    document.getElementById('cam-overlay').classList.remove('hidden');
+    document.querySelector('.cam-hint').textContent = 'Error: ' + e.message;
+  }
 }
-function stopCam(){
-  mpCam?.stop?.();faceVideo.srcObject?.getTracks().forEach(t=>t.stop());faceVideo.srcObject=null;
-  faceCtx.clearRect(0,0,faceCanvas.width,faceCanvas.height);
-  ledCam.classList.remove('on');ledFace.classList.remove('on');valCam.textContent='OFF';
+
+function stopCam() {
+  mpCam?.stop?.();
+  faceVideo.srcObject?.getTracks().forEach(t => t.stop());
+  faceVideo.srcObject = null;
+  faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+  ledCam.classList.remove('on');
+  ledFace.classList.remove('on');
+  valCam.textContent = 'OFF';
   document.getElementById('cam-overlay').classList.remove('hidden');
-  const t=document.getElementById('btn-cam-toggle');
-  if(t){t.textContent='Activar cámara';t.classList.remove('danger');}
+  const btn = document.getElementById('btn-cam-toggle');
+  if (btn) { btn.textContent = 'Activar cámara'; btn.classList.remove('danger'); }
 }
-let camActive=false;
-function toggleCam(){camActive=!camActive;camActive?startCam():stopCam();}
-document.getElementById('btn-cam-start').addEventListener('click',startCam);
-const btnToggle=document.getElementById('btn-cam-toggle');
-if(btnToggle)btnToggle.addEventListener('click',toggleCam);
+
+let camActive = false;
+
+function toggleCam() {
+  camActive = !camActive;
+  if (camActive) startCam(); else stopCam();
+}
+
+document.getElementById('btn-cam-start').addEventListener('click', startCam);
+const btnToggle = document.getElementById('btn-cam-toggle');
+if (btnToggle) btnToggle.addEventListener('click', toggleCam);
 
 
-/* ══════════════════════════════
+/* ══════════════════════════════════════════════════════
    GAME
-══════════════════════════════ */
+══════════════════════════════════════════════════════ */
+
 const cv  = document.getElementById('test-canvas');
 const ctx = cv.getContext('2d');
 let CW = 0, CH = 0;
@@ -411,20 +1106,31 @@ function resizeCanvas() {
 resizeCanvas();
 new ResizeObserver(resizeCanvas).observe(document.getElementById('game-wrap'));
 
-/* ── Road config ── */
-const ROAD_HALF  = 60;
-const BALL_R     = 11;
-const SLICE_H    = 4;
+/* ── Constants ── */
+const ROAD_HALF = 60;  // base half-width of road in px
+const BALL_R    = 11;  // ball radius in px
+const SLICE_H   = 4;   // height of each road slice in px
 
-// Difficulty ramps up with distance — easy until ~1500m, full difficulty at 8000m
+/* ── Difficulty (all scale 0→1 as dist2 grows) ── */
+
 function difficulty() {
+  // Flat until 1500m, then ramps to max at 21000m
   return Math.min(1, Math.max(0, (dist2 - 1500) / 19500));
 }
-function scrollSpeed()  { return 2.2 + difficulty() * 3.8; }
-// Max curve angle capped so ball can always steer through it
-function angleLimit()   { return 0.22 + difficulty() * 0.18; } // 0.22 → 0.40
 
-/* ── Seeded PRNG (mulberry32) — same road every time ── */
+function scrollSpeed() {
+  return 2.2 + difficulty() * 6.8;  // 2.2 → 9.0 px/frame
+}
+
+function angleLimit() {
+  return 0.22 + difficulty() * 0.38; // 0.22 → 0.60 rad
+}
+
+function roadHalf() {
+  return Math.max(38, ROAD_HALF - difficulty() * 18); // 60 → 42 px
+}
+
+/* ── Seeded PRNG (mulberry32) ── */
 function makeRng(seed) {
   let s = seed >>> 0;
   return () => {
@@ -436,10 +1142,10 @@ function makeRng(seed) {
 }
 let rng = makeRng(0xdeadbeef);
 
-/* Road buffer:
-   sliceBase = slices consumed so far.
-   slices[i] = centerX of slice (sliceBase + i).
-   screenY of slice k = (k - sliceBase)*SLICE_H - scrollPx%SLICE_H
+/* ── Road slice buffer ──
+   sliceBase = number of slices consumed (scrolled off top).
+   slices[i] = centerX of slice number (sliceBase + i).
+   screenY of slice k = (k - sliceBase) * SLICE_H  -  scrollPx % SLICE_H
 */
 let slices    = [];
 let sliceBase = 0;
@@ -448,23 +1154,23 @@ let roadGen   = { x: 0, angle: 0, segLen: 0, segTarget: 0 };
 
 function ensureSlices() {
   const BUFFER = 150;
-  const need = sliceBase + Math.ceil(CH / SLICE_H) + BUFFER;
+  const need   = sliceBase + Math.ceil(CH / SLICE_H) + BUFFER;
+
   while (sliceBase + slices.length < need) {
     const w = CW || 600;
-    if (roadGen.x === 0) { roadGen.x = w / 2; }
+    if (roadGen.x === 0) roadGen.x = w / 2;
 
-    // Segment-based generation: commit to a curve direction for many slices
-    // before changing — this makes curves feel intentional, not wobbly
+    // Start a new curve segment once the current one ends
     if (roadGen.segLen <= 0) {
-      // Pick a new target angle: biased away from edges, uses seeded rng
-      const edgeBias = -(roadGen.x - w / 2) / (w * 0.38);
-      const maxA = angleLimit();
+      const edgeBias    = -(roadGen.x - w / 2) / (w * 0.38);
+      const maxA        = angleLimit();
       roadGen.segTarget = (rng() - 0.5) * 2 * maxA * 0.85 + edgeBias * maxA;
       roadGen.segTarget = Math.max(-maxA, Math.min(maxA, roadGen.segTarget));
-      roadGen.segLen = Math.floor(rng() * 120 + 80);
+      // Hold this direction for 80–200 slices before picking a new one
+      roadGen.segLen    = Math.floor(rng() * 120 + 80);
     }
 
-    // Smoothly interpolate angle toward segment target
+    // Gradually steer angle toward segment target
     roadGen.angle += (roadGen.segTarget - roadGen.angle) * 0.025;
     roadGen.segLen--;
 
@@ -472,15 +1178,22 @@ function ensureSlices() {
     roadGen.x  = Math.max(ROAD_HALF + 24, Math.min(w - ROAD_HALF - 24, roadGen.x));
     slices.push(roadGen.x);
   }
+
+  // Trim slices that have scrolled fully off screen
   const canTrim = sliceBase < Math.floor(scrollPx / SLICE_H);
   if (canTrim) {
-    const trimN = Math.min(slices.length - Math.ceil(CH / SLICE_H) - 60,
-                           Math.floor(scrollPx / SLICE_H) - sliceBase);
-    if (trimN > 0) { slices.splice(0, trimN); sliceBase += trimN; }
+    const trimN = Math.min(
+      slices.length - Math.ceil(CH / SLICE_H) - 60,
+      Math.floor(scrollPx / SLICE_H) - sliceBase
+    );
+    if (trimN > 0) {
+      slices.splice(0, trimN);
+      sliceBase += trimN;
+    }
   }
 }
 
-/* Get road center at a screen Y coordinate */
+// Interpolated road centerX at a given screen Y
 function roadCX(screenY) {
   const absSlice = scrollPx / SLICE_H + screenY / SLICE_H;
   const localIdx = absSlice - sliceBase;
@@ -489,22 +1202,37 @@ function roadCX(screenY) {
   return slices[i] * (1 - f) + (slices[i + 1] ?? slices[i]) * f;
 }
 
-/* ── Ball ── */
-let ballX = 0, ballVX = 0;
-const STEER = 0.28, FRIC = 0.84;
+/* ── Ball physics ── */
+let ballX  = 0;
+let ballVX = 0;
+const STEER = 0.28;
+const FRIC  = 0.84;
 
-/* ── State ── */
-let dist2 = 0, elapsed = 0, offFrames = 0;
-let gameState = 'idle', gameStart = 0, lastT = 0;
+/* ── Game state ── */
+let dist2     = 0;
+let elapsed   = 0;
+let offFrames = 0;
+let gameState = 'idle';
+let gameStart = 0;
+let lastT     = 0;
 
 function resetGame() {
-  slices = []; sliceBase = 0; scrollPx = 0;
-  rng = makeRng(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
+  slices    = [];
+  sliceBase = 0;
+  scrollPx  = 0;
+
+  // Random seed so each run is a different road
+  rng     = makeRng(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
   roadGen = { x: CW / 2, angle: 0, segLen: 0, segTarget: 0 };
   ensureSlices();
-  // Place ball exactly at road center at its screen position
-  ballX = roadCX(CH - 80); ballVX = 0;
-  dist2 = 0; elapsed = 0; offFrames = 0;
+
+  // Start ball at road center
+  ballX     = roadCX(CH * 0.55);
+  ballVX    = 0;
+  dist2     = 0;
+  elapsed   = 0;
+  offFrames = 0;
+
   document.getElementById('val-dist').textContent = '0';
   document.getElementById('val-time').textContent = '0.0';
 }
@@ -516,27 +1244,30 @@ function startGame() {
   gameStart = lastT = performance.now();
   requestAnimationFrame(gameLoop);
 }
-/* ── Best record ── */
+
+/* ── Best record (localStorage) ── */
 let bestDist = parseInt(localStorage.getItem('facedrive_best') || '0', 10);
+
 function updateBestDisplay() {
   document.getElementById('val-best').textContent = bestDist > 0 ? bestDist + 'm' : '—';
 }
 updateBestDisplay();
 
 function endGame() {
-  gameState = 'dead';
-  const d = Math.floor(dist2);
-  if (d > bestDist) {
+  gameState    = 'dead';
+  const d      = Math.floor(dist2);
+  const isNew  = d > bestDist;
+
+  if (isNew) {
     bestDist = d;
     localStorage.setItem('facedrive_best', bestDist);
     updateBestDisplay();
   }
-  const isRecord = d >= bestDist;
+
   document.getElementById('overlay').classList.remove('hidden');
-  document.getElementById('ov-title').textContent  = 'FUERA\nDE LA VÍA';
+  document.getElementById('ov-title').textContent   = 'FUERA\nDE LA VÍA';
   document.getElementById('ov-score').style.display = 'block';
-  document.getElementById('ov-score').textContent   =
-    `${d}m · ${elapsed.toFixed(1)}s${isRecord && d > 0 ? ' · ¡RÉCORD!' : ''}`;
+  document.getElementById('ov-score').textContent   = `${d}m · ${elapsed.toFixed(1)}s${isNew && d > 0 ? ' · ¡RÉCORD!' : ''}`;
   document.getElementById('play-btn').textContent   = '▶ REINTENTAR';
 }
 
@@ -547,75 +1278,95 @@ document.getElementById('play-btn').addEventListener('click', () => {
 });
 
 const keys2 = {};
-window.addEventListener('keydown', e => keys2[e.key] = true);
-window.addEventListener('keyup',   e => keys2[e.key] = false);
+window.addEventListener('keydown', e => { keys2[e.key] = true;  });
+window.addEventListener('keyup',   e => { keys2[e.key] = false; });
 
 /* ── Draw ── */
 function drawGame() {
   ctx.clearRect(0, 0, CW, CH);
-  const ballY  = CH - 80;
+
+  const ballY  = CH * 0.55;
   const subOff = scrollPx % SLICE_H;
   const nRows  = Math.ceil(CH / SLICE_H) + 2;
+  const RH     = roadHalf();
 
-  /* Dark background */
+  // Background
   ctx.fillStyle = '#14141e';
   ctx.fillRect(0, 0, CW, CH);
 
-  /* Road + markings */
+  // Road slices
   for (let row = 0; row < nRows; row++) {
-    const screenY   = row * SLICE_H - subOff;
-    const absSlice  = Math.floor(scrollPx / SLICE_H) + row;
-    const localIdx  = absSlice - sliceBase;
+    const screenY  = row * SLICE_H - subOff;
+    const absSlice = Math.floor(scrollPx / SLICE_H) + row;
+    const localIdx = absSlice - sliceBase;
     if (localIdx < 0 || localIdx >= slices.length) continue;
-    const cx = slices[localIdx];
-
+    const cx     = slices[localIdx];
     const stripe = Math.floor(absSlice / 4) % 2 === 0;
+    const rumble = Math.floor(absSlice / 6) % 2 === 0;
+
+    // Road surface
     ctx.fillStyle = '#272737';
-    ctx.fillRect(cx - ROAD_HALF, screenY, ROAD_HALF * 2, SLICE_H);
+    ctx.fillRect(cx - RH, screenY, RH * 2, SLICE_H);
 
+    // Edge lines (cream)
     ctx.fillStyle = 'rgba(200,190,170,0.9)';
-    ctx.fillRect(cx - ROAD_HALF - 3, screenY, 3, SLICE_H);
-    ctx.fillRect(cx + ROAD_HALF,     screenY, 3, SLICE_H);
+    ctx.fillRect(cx - RH - 3, screenY, 3, SLICE_H);
+    ctx.fillRect(cx + RH,     screenY, 3, SLICE_H);
 
+    // Centre dash (amber, alternating)
     if (stripe) {
       ctx.fillStyle = 'rgba(240,160,48,0.4)';
       ctx.fillRect(cx - 2, screenY, 4, SLICE_H);
     }
 
-    const rumble = Math.floor(absSlice / 6) % 2 === 0;
+    // Rumble strips (red / cream alternating)
     ctx.fillStyle = rumble ? '#c83030' : '#e8e0d0';
-    ctx.fillRect(cx - ROAD_HALF - 10, screenY, 7, SLICE_H);
-    ctx.fillRect(cx + ROAD_HALF + 3,  screenY, 7, SLICE_H);
+    ctx.fillRect(cx - RH - 10, screenY, 7, SLICE_H);
+    ctx.fillRect(cx + RH + 3,  screenY, 7, SLICE_H);
   }
 
-  /* Ball */
+  // Ball
   const cx0    = roadCX(ballY);
-  const onRoad = Math.abs(ballX - cx0) < ROAD_HALF;
-  if (!onRoad) {
-    ctx.beginPath(); ctx.arc(ballX, ballY, BALL_R + 7, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(232,64,64,0.2)'; ctx.fill();
-  }
-  ctx.beginPath(); ctx.arc(ballX, ballY, BALL_R, 0, Math.PI * 2);
-  ctx.fillStyle = onRoad ? '#e8e0d0' : '#e84040'; ctx.fill();
-  ctx.strokeStyle = onRoad ? '#f0a030' : '#ff8080';
-  ctx.lineWidth = 2.5; ctx.stroke();
-  ctx.beginPath(); ctx.arc(ballX - 3, ballY - 4, 3, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fill();
+  const onRoad = Math.abs(ballX - cx0) < RH;
 
-  /* Speed bar — right edge, only during game */
+  if (!onRoad) {
+    // Off-road red glow
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, BALL_R + 7, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(232,64,64,0.2)';
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, BALL_R, 0, Math.PI * 2);
+  ctx.fillStyle   = onRoad ? '#e8e0d0' : '#e84040';
+  ctx.fill();
+  ctx.strokeStyle = onRoad ? '#f0a030' : '#ff8080';
+  ctx.lineWidth   = 2.5;
+  ctx.stroke();
+
+  // Shine dot
+  ctx.beginPath();
+  ctx.arc(ballX - 3, ballY - 4, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fill();
+
+  // Speed bar (right edge, only during game)
   if (gameState === 'running') {
-    const d = difficulty();
-    const maxH = CH - 100;
-    const barH = maxH * d;
+    const d     = difficulty();
+    const maxH  = CH - 100;
+    const barH  = maxH * d;
+    const color = d < 0.4 ? '#38c060' : d < 0.75 ? '#f0a030' : '#e84040';
+
     ctx.fillStyle = 'rgba(255,255,255,0.05)';
     ctx.fillRect(CW - 10, CH - 50 - maxH, 6, maxH);
-    const spColor = d < 0.4 ? '#38c060' : d < 0.75 ? '#f0a030' : '#e84040';
-    ctx.fillStyle = spColor;
+    ctx.fillStyle = color;
     ctx.fillRect(CW - 10, CH - 50 - barH, 6, barH);
   }
 
-  /* Progress bar top */
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(0, 0, CW, 4);
+  // Progress bar (top)
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(0, 0, CW, 4);
   ctx.fillStyle = '#f0a030';
   ctx.fillRect(0, 0, Math.min(CW, (dist2 / 3000) * CW), 4);
 }
@@ -623,10 +1374,12 @@ function drawGame() {
 /* ── Game loop ── */
 function gameLoop(ts) {
   if (gameState !== 'running') return;
-  const dt = Math.min((ts - lastT) / 16.67, 2.5); lastT = ts;
+
+  const dt = Math.min((ts - lastT) / 16.67, 2.5);
+  lastT   = ts;
   elapsed = (ts - gameStart) / 1000;
 
-  // Input
+  // Steering input (keyboard overrides joystick)
   let steer = joyX;
   if (keys2['ArrowLeft']  || keys2['a']) steer = -1;
   if (keys2['ArrowRight'] || keys2['d']) steer =  1;
@@ -637,24 +1390,21 @@ function gameLoop(ts) {
   ballX  += ballVX * dt;
   ballX   = Math.max(BALL_R, Math.min(CW - BALL_R, ballX));
 
-  // Scroll — speed increases with difficulty
+  // Road scroll
   const spd = scrollSpeed();
   scrollPx += spd * dt;
   dist2    += spd * dt * 2.8;
-
-  // Keep road generated ahead
   ensureSlices();
 
-  // Off-road
-  const ballY = CH - 80;
+  // Off-road detection
+  const ballY = CH * 0.55;
   const cx0   = roadCX(ballY);
-  if (Math.abs(ballX - cx0) > ROAD_HALF) {
+  if (Math.abs(ballX - cx0) > roadHalf()) {
     offFrames += dt;
     if (offFrames > 45) { endGame(); return; }
   } else {
     offFrames = Math.max(0, offFrames - dt * 2);
   }
-  if (offFrames > 15 && offFrames - dt <= 15) { /* one-strike — just end */ }
 
   document.getElementById('val-dist').textContent = Math.floor(dist2);
   document.getElementById('val-time').textContent = elapsed.toFixed(1);
@@ -663,11 +1413,16 @@ function gameLoop(ts) {
   requestAnimationFrame(gameLoop);
 }
 
-/* ── Idle loop ── */
+/* ── Idle loop (animates road on the start screen) ── */
 function idleLoop() {
   if (gameState === 'running') return;
   if (CW > 0) {
-    if (slices.length < 10) { rng = makeRng(Date.now()); roadGen = { x: 0, angle: 0, segLen: 0, segTarget: 0 }; ensureSlices(); ballX = CW/2; }
+    if (slices.length < 10) {
+      rng     = makeRng(Date.now());
+      roadGen = { x: 0, angle: 0, segLen: 0, segTarget: 0 };
+      ensureSlices();
+      ballX = CW / 2;
+    }
     scrollPx += 1.2;
     ensureSlices();
     drawGame();
@@ -675,7 +1430,6 @@ function idleLoop() {
   requestAnimationFrame(idleLoop);
 }
 idleLoop();
-
 
 </script>
 </body>
